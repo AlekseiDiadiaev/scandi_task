@@ -1,0 +1,11 @@
+{
+    "name": "admin/server",
+    "autoload": {
+        "psr-4": {
+            "ScandiwebAPI\\": "src/"
+        }
+    },
+    "require": {
+        
+    }
+}
