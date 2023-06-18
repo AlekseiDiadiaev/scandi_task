@@ -1,6 +1,9 @@
 import './app.scss'
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import ProductList from '../pages/ProductList';
+import ProductAdd from '../pages/ProductAdd';
+import Page404 from '../pages/Page404';
+
 
 const App = () => {
 
@@ -8,7 +11,8 @@ const App = () => {
         <Router>
             <Routes>
                 <Route path='/' element={<ProductList/>} />
-                {/* <Route path='*' element={<Page404 />} /> */}
+                <Route path='/add' element={<ProductAdd/>} />
+                <Route path='*' element={<Page404 />} />
             </Routes>
         </Router>
     );

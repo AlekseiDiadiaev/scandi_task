@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { productsDataFetched } from './asyncThunk'
+import { productsDataFetched, productsDeleted } from './asyncThunk'
 
 export const Slice = createSlice({
     name: 'slice',
@@ -7,13 +7,16 @@ export const Slice = createSlice({
         productsData: [],
         loading: false,
         error: false,
-        jopa: 1
+        seletedToDelete: []
     },
     reducers: {
-        // loadingChanged(state, action) {
-        //     state.loading = action.payload;
-        // },
-        
+        toDeleteSelected(state, action) {
+            state.seletedToDelete.push(action.payload);
+        },
+        toDeleteCancel(state, action) {
+            const index = state.seletedToDelete.findIndex(item => item === action.payload);
+            state.seletedToDelete.splice(index, 1)
+        },       
     },
     extraReducers: (builder) => {
         builder
@@ -30,6 +33,9 @@ export const Slice = createSlice({
                 state.error = true;
                 state.loading = false;
             })
+            .addCase(productsDeleted.fulfilled, (state) => {
+                    state.seletedToDelete = []
+            })
             .addDefaultCase(() => {})
     },
 })
@@ -37,4 +43,6 @@ export const Slice = createSlice({
 export default Slice.reducer
 
 export const {
+    toDeleteSelected,
+    toDeleteCancel
 } = Slice.actions;

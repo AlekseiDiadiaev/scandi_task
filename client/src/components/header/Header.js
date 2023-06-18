@@ -1,17 +1,15 @@
 import './header.scss'
-import Button from '../button/Button'
 
 
-function Header({ children }) {
+function Header({ children, title }) {
 
     return (
         <>
             <div className="container">
                 <header className="header">
-                    <h1 className="header__title">{children}</h1>
+                    <h1 className="header__title">{title}</h1>
                     <div className="header__btns">
-                        <Button>ADD</Button>
-                        <Button>MASS DELETE</Button>
+                        {children}
                     </div>
                 </header>
             </div>
