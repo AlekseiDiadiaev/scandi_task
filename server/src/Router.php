@@ -38,10 +38,14 @@ class Router
     private static function routeGETMethod($uri)
     {
         $segments = explode('/', $uri);
-        $controller = self::getController($segments);
-        if (!$controller) {
+        
+        $nameController = self::$CONTROLLER_NAMESPACE . ucfirst($segments[0]) .  'Controller';
+        if (!class_exists($nameController)) {
             return false;
         }
+
+        $controller = new $nameController;
+       
 
         if (count($segments) === 1) {
             $controller->readAll();
@@ -53,11 +57,15 @@ class Router
     {
         $segments = explode('/', $uri);
         if (count($segments) === 1) return false;
-        $controller = self::getController($segments);
-        if (!$controller) {
+
+        $nameController = self::$CONTROLLER_NAMESPACE . ucfirst($segments[1]) . ucfirst($segments[0]) .  'Controller';
+        if (!class_exists($nameController)) {
             return false;
         }
-        $controller->createOne($segments[1]);
+
+        $controller = new $nameController;
+
+        $controller->createOne();
         return true;
     }
 
@@ -65,11 +73,15 @@ class Router
     {
         $segments = explode('/', $uri);
         if (count($segments) === 1) return false;
-        $controller = self::getController($segments);
-        if (!$controller) {
+
+        $nameController = self::$CONTROLLER_NAMESPACE . ucfirst($segments[0]) .  'Controller';
+        if (!class_exists($nameController)) {
             return false;
         }
+
+        $controller = new $nameController;
         $controller->deleteOneByID($segments[1]);
+
         return true;
     }
 
@@ -78,12 +90,4 @@ class Router
         ErrorController::run();
     }
 
-    private static function getController($segments)
-    {
-        $nameController = self::$CONTROLLER_NAMESPACE . ucfirst($segments[0]) . 'Controller';
-        if (class_exists($nameController)) {
-            return new $nameController;
-        }
-        return false;
-    }
 }
