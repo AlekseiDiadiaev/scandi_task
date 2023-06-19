@@ -4,7 +4,7 @@ import Footer from '../footer/Footer'
 import Button from '../button/Button'
 import AddForm from '../addForm/AddForm'
 import { useEffect, useState } from 'react'
-
+import { useNavigate } from 'react-router-dom' 
 // import { useDispatch, useSelector} from 'react-redux';
 // import { useEffect } from 'react';
 
@@ -15,8 +15,7 @@ import { useEffect, useState } from 'react'
 
 const ProductAdd = () => {
     const [submitTrigger, setSudmitTrigger] = useState(false)
-    const [cancelTrigger, setCancelTrigger] = useState(false)
-
+    const navigate = useNavigate();
     // const productsData = useSelector(state => state.productsData);
     // const loading = useSelector(state => state.loading);
     // const error = useSelector(state => state.error);
@@ -32,10 +31,10 @@ const ProductAdd = () => {
             <div className="container">
                 <Header title='Product Add'>
                     <Button onClick={() => setSudmitTrigger(true)}>Save</Button>
-                    <Button onClick={() => setCancelTrigger(true)}>Cancel</Button>
+                    <Button onClick={() => navigate('/')}>Cancel</Button>
                 </Header>
                 <main className="products-add">
-                    <AddForm submit={submitTrigger} cancel={cancelTrigger} setSudmitTrigger={setSudmitTrigger} setCancelTrigger={setCancelTrigger}/>
+                    <AddForm submit={submitTrigger} setSudmitTrigger={setSudmitTrigger}/>
                 </main>
                 <Footer />
             </div>

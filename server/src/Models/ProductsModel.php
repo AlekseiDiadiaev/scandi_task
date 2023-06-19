@@ -3,6 +3,7 @@
 namespace ScandiwebAPI\Models;
 
 use ScandiwebAPI\Database;
+use ScandiwebAPI\Controllers\ErrorController;
 
 class ProductsModel
 {
@@ -15,7 +16,7 @@ class ProductsModel
     }
 
     public function readAll()
-    {   
+    {
         $sql = 'SELECT products.id, products.sku,
             products.name, products.price, products.type,
             furniture.height, furniture.width, furniture.length,
@@ -24,24 +25,48 @@ class ProductsModel
             LEFT JOIN furniture ON products.sku = furniture.sku
             LEFT JOIN books ON products.sku = books.sku
             LEFT JOIN dvd ON products.sku = dvd.sku ';
-        $result = mysqli_query($this->conn, $sql);
+        $response = mysqli_query($this->conn, $sql);
 
-        if (!$result) {
-            echo "Ошибка запроса: " . mysqli_error($this->conn);
+        if (!$response) {
+            ErrorController::run();
         }
         $res = [];
-    
-        if (mysqli_num_rows($result) > 0) {
-            while($row = mysqli_fetch_assoc($result)) {
+
+        if (mysqli_num_rows($response) > 0) {
+            while ($row = mysqli_fetch_assoc($response)) {
                 $res[] = $row;
             }
-        } 
-        
+        }
+
         return $res;
     }
 
+    public function readOne($sku)
+    {
+        $sql = "SELECT products.id, products.sku,
+            products.name, products.price, products.type,
+            furniture.height, furniture.width, furniture.length,
+            books.weight, dvd.size  
+            FROM products
+            LEFT JOIN furniture ON products.sku = furniture.sku
+            LEFT JOIN books ON products.sku = books.sku
+            LEFT JOIN dvd ON products.sku = dvd.sku
+            WHERE products.sku = '{$sku}'";
+        $response = mysqli_query($this->conn, $sql);
+
+        if (!$response) {
+            ErrorController::run();
+        }
+
+        if (mysqli_num_rows($response)) {
+            return mysqli_fetch_assoc($response);
+        }
+
+        return false;
+    }
+
     public function deleteOneByID($sku)
-    { 
+    {
         $productType = $this->getType($sku);
 
         $this->conn->begin_transaction();
@@ -52,33 +77,39 @@ class ProductsModel
             $this->conn->query("DELETE FROM $productType WHERE sku = '{$sku}'");
 
             $this->conn->commit();
-
         } catch (\Exception $e) {
 
             $this->conn->rollback();
-            return false;
+            ErrorController::run();
         }
         return true;
-    } 
+    }
 
     protected function createOne()
-    {   
-        return function($secondSql){
+    {
+        return function ($secondSql) {
             ['name' => $name, 'price' => $price, 'sku' => $sku] = $_POST;
             $firstSql = "INSERT INTO products (sku, name, price, type) values ('{$sku}', '{$name}', {$price}, '{$this->typeName}')";
-
+          
             $this->conn->begin_transaction();
             try {
-                $this->conn->query($firstSql);
+        
+                $response1 = $this->conn->query($firstSql);
+                if (!$response1) { 
+                    throw new \Exception(mysqli_error($this->conn)); 
+                };
 
-                $this->conn->query($secondSql);
+                $response2 = $this->conn->query($secondSql);
+                if (!$response2) { 
+                    throw new \Exception(mysqli_error($this->conn)); 
+                };
 
                 $this->conn->commit();
-
             } catch (\Exception $e) {
                 $this->conn->rollback();
-                return false;
+                ErrorController::run($e->getMessage());
             }
+
             return true;
         };
     }
@@ -88,22 +119,19 @@ class ProductsModel
         $selectSql = "SELECT type FROM products WHERE sku = '{$sku}'";
 
         $result = mysqli_query($this->conn, $selectSql);
-        
+
         if (!$result) {
-            echo "Ошибка запроса: " . mysqli_error($this->conn);
-            return false;
+            ErrorController::run();
         }
 
         $productType = '';
 
         if (mysqli_num_rows($result) > 0) {
-            while($row = mysqli_fetch_assoc($result)) {
+            while ($row = mysqli_fetch_assoc($result)) {
                 $productType = $row['type'];
             }
-        } 
+        }
 
         return  $productType;
     }
 }
-
-

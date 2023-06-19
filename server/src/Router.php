@@ -38,18 +38,26 @@ class Router
     private static function routeGETMethod($uri)
     {
         $segments = explode('/', $uri);
-        
+
         $nameController = self::$CONTROLLER_NAMESPACE . ucfirst($segments[0]) .  'Controller';
         if (!class_exists($nameController)) {
             return false;
         }
 
         $controller = new $nameController;
-       
 
         if (count($segments) === 1) {
             $controller->readAll();
-        } 
+        }
+
+        if (count($segments) === 2) {
+            $controller->readOne($segments[1]);
+        }
+
+        if (count($segments) === 3 && $segments[1] === 'isunique') {
+            $controller->checkUnique($segments[2]);
+        }
+
         return true;
     }
 
@@ -80,7 +88,10 @@ class Router
         }
 
         $controller = new $nameController;
-        $controller->deleteOneByID($segments[1]);
+
+        if (count($segments) === 2) {
+            $controller->deleteOneByID($segments[1]);
+        }
 
         return true;
     }
@@ -89,5 +100,4 @@ class Router
     {
         ErrorController::run();
     }
-
 }

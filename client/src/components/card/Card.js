@@ -27,7 +27,7 @@ const Card = ({sku, name, price, attribute}) => {
     return (
         <div className="card">
             <input 
-                className="card__checkbox" 
+                className="card__checkbox delete-checkbox" 
                 type="checkbox"
                 checked={isChecked}
                 onChange={e => setIsChecked(e.target.checked)}/>

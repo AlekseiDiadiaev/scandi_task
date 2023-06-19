@@ -17,6 +17,14 @@ export const getProducts = () => {
     return _request(API + 'products');
 }
 
+export const getOneProduct = (sku) => {
+    return _request(API + `products/${sku}`);
+}
+
+export const checkUniqueSku = (sku) => {
+    return _request(API + `products/isunique/${sku}`);
+}
+
 export const deleteProducts = (toDeleteArr) => {
     return toDeleteArr.map((sku) =>
         fetch(API + `products/${sku}`, {
@@ -24,3 +32,8 @@ export const deleteProducts = (toDeleteArr) => {
         })
     );
 }
+
+export const createProduct = (type) => {
+    return _request(API + `${type}`);
+}
+

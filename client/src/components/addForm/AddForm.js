@@ -1,23 +1,54 @@
 import './addForm.scss'
-import { Formik, Form, Field, ErrorMessage, useFormikContext } from 'formik';
+
+import Spinner from '../spinner/Spinner';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useState, useRef, useEffect } from 'react'
+import { isSkuUniqueFetched } from '../../slices/asyncThunk'
+import { getOneProduct } from '../../api/dataApi';
+import { useDispatch, useSelector } from 'react-redux';
+import { skuIsUniqueSet } from '../../slices/slice'
 
 const DVD_TYPE = 'dvd';
 const BOOK_TYPE = 'book';
 const FURNITURE_TYPE = 'furniture';
 
-const AddForm = ({ submit, cancel, setSudmitTrigger, setCancelTrigger }) => {
+const AddForm = ({ submit, setSudmitTrigger }) => {
 
     const [typeChanged, setTypeChanged] = useState(BOOK_TYPE);
+    const [mainFromBody, setMainFromBody] = useState(null);
+    const [attrFromBody, setAttrFromBody] = useState(null);
     const mainFormRef = useRef(null);
     const attributeFormRef = useRef(null);
+    const dispatch = useDispatch()
+    const skuIsUnique = useSelector(state => state.skuIsUnique)
+    const loadingCheckSku = useSelector(state => state.loadingCheckSku)
+    const errorCheckSku = useSelector(state => state.errorCheckSku)
 
     useEffect(() => {
         if (!submit) return;
         setSudmitTrigger(false)
         mainFormRef.current.submitForm();
+        attributeFormRef.current.submitForm();   
     }, [submit])
+
+    useEffect(() => {
+        if(!mainFromBody || !attrFromBody) return;
+        console.log(mainFromBody);
+        console.log(attrFromBody);
+    },[mainFromBody, attrFromBody])
+
+    const handleBlurSKU = (e) => {
+        if(e.target.value === '') return;
+        dispatch(isSkuUniqueFetched(e.target.value))
+    }
+
+    const handleFocusSKU = (e, setTouched) => {
+        dispatch(skuIsUniqueSet(true))
+        setTouched({'sku': false})
+    }
+
+    
 
     return (
         <div className="form-wrapper">
@@ -39,17 +70,26 @@ const AddForm = ({ submit, cancel, setSudmitTrigger, setCancelTrigger }) => {
                     'price': Yup.number()
                         .required('Required field'),
                 })}
-                onSubmit={values => console.log(JSON.stringify(values))}
+                onSubmit={values => setMainFromBody(JSON.stringify(values))}
             >
-                {({ setFieldValue }) => {
-
+                {({ setFieldValue, touched, errors, setTouched, handleBlur, handleChange }) => {
                     return (<Form className="product-form">
                         <div className="input-wrapper">
                             <label htmlFor="sku">SKU</label>
                             <Field id="sku"
                                 name="sku"
-                                type="text" />
+                                type="text"
+                                className={`${skuIsUnique && touched.sku && !errors.sku ? 'green' : ''} ${!skuIsUnique ? 'red' : ''}`}
+                                onFocus={e => handleFocusSKU(e ,setTouched)}
+                                onBlur={e => {
+                                    handleBlurSKU(e)
+                                    handleBlur(e)
+                                }} />
                             <ErrorMessage component="div" name="sku" />
+                            {skuIsUnique && touched.sku && !errors.sku && <div className='green-msg'>SKU is unique</div>}
+                            {!skuIsUnique && <div>SKU not unique</div>}
+                            {loadingCheckSku && <Spinner size='20px'/>}
+                            {errorCheckSku &&  <div>Error fetching data from the server</div>}
                         </div>
                         <div className="input-wrapper">
                             <label htmlFor='name'>Name</label>
@@ -74,7 +114,7 @@ const AddForm = ({ submit, cancel, setSudmitTrigger, setCancelTrigger }) => {
                                 as="select"
                                 onChange={(e) => {
                                     setTypeChanged(e.target.value)
-                                    setFieldValue('productType', e.target.value)
+                                    handleChange(e)
                                 }}
                             >
                                 <option value="book">Book</option>
@@ -86,9 +126,9 @@ const AddForm = ({ submit, cancel, setSudmitTrigger, setCancelTrigger }) => {
                     </Form>)
                 }}
             </Formik>
-            {typeChanged === DVD_TYPE && <BookAttrForm innerRef={attributeFormRef} />}
-            {typeChanged === BOOK_TYPE && <DvdAttrForm innerRef={attributeFormRef} />}
-            {typeChanged === FURNITURE_TYPE && <FurnitureAttrForm innerRef={attributeFormRef} />}
+            {typeChanged === BOOK_TYPE && <BookAttrForm innerRef={attributeFormRef} setAttrFromBody={setAttrFromBody}/>}
+            {typeChanged === DVD_TYPE && <DvdAttrForm innerRef={attributeFormRef} setAttrFromBody={setAttrFromBody}/>}
+            {typeChanged === FURNITURE_TYPE && <FurnitureAttrForm innerRef={attributeFormRef} setAttrFromBody={setAttrFromBody}/>}
 
         </div>
     );
@@ -97,9 +137,10 @@ const AddForm = ({ submit, cancel, setSudmitTrigger, setCancelTrigger }) => {
 export default AddForm;
 
 const DvdAttrForm = ({ innerRef }) => {
+    console.log('dvd component')
     return (
         <>
-            <div className="attr-descr">Please provide size</div>
+            <div className="attr-descr">Please, provide size</div>
             <Formik
                 innerRef={innerRef}
                 initialValues={{
@@ -125,10 +166,10 @@ const DvdAttrForm = ({ innerRef }) => {
     )
 }
 
-const BookAttrForm = ({ innerRef }) => {
+const BookAttrForm = ({ innerRef, setAttrFromBody }) => {
     return (
         <>
-            <div className="attr-descr">Please provide weight</div>
+            <div className="attr-descr">Please, provide weight</div>
             <Formik
                 innerRef={innerRef}
                 initialValues={{
@@ -138,7 +179,7 @@ const BookAttrForm = ({ innerRef }) => {
                     'weight': Yup.number()
                         .required('Required field'),
                 })}
-                onSubmit={values => console.log(JSON.stringify(values))}
+                onSubmit={values => setAttrFromBody(JSON.stringify(values))}
             >
                 <Form className="add-attr-form">
                     <div className="input-wrapper">
@@ -157,7 +198,7 @@ const BookAttrForm = ({ innerRef }) => {
 const FurnitureAttrForm = ({ innerRef }) => {
     return (
         <>
-            <div className="attr-descr">Please provide dimensions in HxWxL format</div>
+            <div className="attr-descr">Please, provide dimensions in HxWxL format</div>
             <Formik
                 innerRef={innerRef}
                 initialValues={{

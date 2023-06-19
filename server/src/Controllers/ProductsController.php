@@ -21,17 +21,43 @@ class ProductsController
         print_r(json_encode($filteredRes));
     }
 
+    final public function readOne($sku)
+    {
+        $model = new ProductsModel;
+        $res = $model->readOne($sku);
+        if (!$res) {
+            print_r('[]');;
+        } else {
+            $filteredRes = array_filter($res, function ($value) {
+                return !is_null($value);
+            });
+
+            print_r(json_encode($filteredRes));
+        }
+    }
+
+    final public function checkUnique($sku)
+    {
+        $model = new ProductsModel;
+        $res = $model->readOne($sku);
+        if (!$res) {
+            print_r('{"is_unique": true}');
+        } else {
+            print_r('{"is_unique": false}');
+        }
+    }
+
     public function createOne()
     {
-        if(!$this->typeName) {
+        if (!$this->typeName) {
             return;
         }
         $model = $this->getModel();
 
         $res = $model->createOne();
-        if($res) {
+        if ($res) {
             http_response_code(201);
-        }; 
+        };
     }
 
     final public function deleteOneByID($sku)
@@ -39,18 +65,14 @@ class ProductsController
         $model = new ProductsModel;
 
         $res = $model->deleteOneByID($sku);
-        if($res) {
+        if ($res) {
             http_response_code(204);
         };
-    } 
+    }
 
     private function getModel()
     {
         $nameModel = $this->MODELS_NAMESPACE . ucfirst($this->typeName) . 'ProductsModel';
         return new $nameModel;
     }
-     
 }
-
-
-
