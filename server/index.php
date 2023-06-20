@@ -9,4 +9,3 @@ header("Access-Control-Allow-Headers: Content-Type");
 header('Content-type: json/application');
 
 Router::run();
-

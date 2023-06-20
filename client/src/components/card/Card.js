@@ -27,10 +27,12 @@ const Card = ({sku, name, price, attribute}) => {
     return (
         <div className="card">
             <input 
+                id={sku}
                 className="card__checkbox delete-checkbox" 
                 type="checkbox"
                 checked={isChecked}
                 onChange={e => setIsChecked(e.target.checked)}/>
+            <label htmlFor={sku}></label>
             <div className="card__sku">{sku}</div>
             <div className="card__name">{name}</div>
             <div className="card__price">{price}$</div>

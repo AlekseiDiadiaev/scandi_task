@@ -4,61 +4,77 @@ import Spinner from '../spinner/Spinner';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useState, useRef, useEffect } from 'react'
-import { isSkuUniqueFetched } from '../../slices/asyncThunk'
-import { getOneProduct } from '../../api/dataApi';
+import { isSkuUniqueFetched, productCreated } from '../../slices/asyncThunk'
 import { useDispatch, useSelector } from 'react-redux';
 import { skuIsUniqueSet } from '../../slices/slice'
+import { useNavigate } from 'react-router-dom';
+import CustomErrorMessage from '../errorBoundary/ErrorMessage'
 
 const DVD_TYPE = 'dvd';
-const BOOK_TYPE = 'book';
+const BOOK_TYPE = 'books';
 const FURNITURE_TYPE = 'furniture';
 
 const AddForm = ({ submit, setSudmitTrigger }) => {
 
     const [typeChanged, setTypeChanged] = useState(BOOK_TYPE);
     const [mainFromBody, setMainFromBody] = useState(null);
-    const [attrFromBody, setAttrFromBody] = useState(null);
     const mainFormRef = useRef(null);
     const attributeFormRef = useRef(null);
     const dispatch = useDispatch()
     const skuIsUnique = useSelector(state => state.skuIsUnique)
     const loadingCheckSku = useSelector(state => state.loadingCheckSku)
     const errorCheckSku = useSelector(state => state.errorCheckSku)
+    const loading = useSelector(state => state.loading)
+    const error = useSelector(state => state.error)
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!submit) return;
         setSudmitTrigger(false)
         mainFormRef.current.submitForm();
-        attributeFormRef.current.submitForm();   
     }, [submit])
 
     useEffect(() => {
-        if(!mainFromBody || !attrFromBody) return;
-        console.log(mainFromBody);
-        console.log(attrFromBody);
-    },[mainFromBody, attrFromBody])
+        if (!mainFromBody) return;
+        const body = Object.fromEntries(Object.entries(mainFromBody).filter(([key, value]) => {
+            return value;
+        }));
+        const json = JSON.stringify(body)
+        dispatch(productCreated({ type: typeChanged, body: json }))
+            .then(res => {
+                if (res.meta.requestStatus === "fulfilled") {
+                    console.log(res)
+                    navigate('/')
+                }
+            });
+    }, [mainFromBody])
 
     const handleBlurSKU = (e) => {
-        if(e.target.value === '') return;
+        if (e.target.value === '') return;
         dispatch(isSkuUniqueFetched(e.target.value))
     }
 
     const handleFocusSKU = (e, setTouched) => {
         dispatch(skuIsUniqueSet(true))
-        setTouched({'sku': false})
+        setTouched({ 'sku': false })
     }
-
-    
 
     return (
         <div className="form-wrapper">
-            <Formik
+            {loading && <Spinner size='50px' />}
+            {error && <CustomErrorMessage>Error adding product. Refresh the page and try again</CustomErrorMessage>}
+            {!loading && !error && <Formik
                 innerRef={mainFormRef}
                 initialValues={{
                     'sku': '',
                     'name': '',
                     'price': '',
-                    'productType': ''
+                    'productType': 'books',
+                    'weight': '',
+                    'height': '',
+                    'width': '',
+                    'length': '',
+                    'size': ''
                 }}
                 validationSchema={Yup.object({
                     'sku': Yup.string()
@@ -69,10 +85,20 @@ const AddForm = ({ submit, setSudmitTrigger }) => {
                         .required('Required field'),
                     'price': Yup.number()
                         .required('Required field'),
+                    'weight': typeChanged === BOOK_TYPE && Yup.number()
+                        .required('Required field'),
+                    'height': typeChanged === FURNITURE_TYPE && Yup.number()
+                        .required('Required field'),
+                    'width': typeChanged === FURNITURE_TYPE && Yup.number()
+                        .required('Required field'),
+                    'length': typeChanged === FURNITURE_TYPE && Yup.number()
+                        .required('Required field'),
+                    'size': typeChanged === DVD_TYPE && Yup.number()
+                        .required('Required field')
                 })}
-                onSubmit={values => setMainFromBody(JSON.stringify(values))}
+                onSubmit={values => setMainFromBody(values)}
             >
-                {({ setFieldValue, touched, errors, setTouched, handleBlur, handleChange }) => {
+                {({ touched, errors, setTouched, handleBlur, handleChange, setFieldValue }) => {
                     return (<Form className="product-form">
                         <div className="input-wrapper">
                             <label htmlFor="sku">SKU</label>
@@ -80,7 +106,7 @@ const AddForm = ({ submit, setSudmitTrigger }) => {
                                 name="sku"
                                 type="text"
                                 className={`${skuIsUnique && touched.sku && !errors.sku ? 'green' : ''} ${!skuIsUnique ? 'red' : ''}`}
-                                onFocus={e => handleFocusSKU(e ,setTouched)}
+                                onFocus={e => handleFocusSKU(e, setTouched)}
                                 onBlur={e => {
                                     handleBlurSKU(e)
                                     handleBlur(e)
@@ -88,8 +114,8 @@ const AddForm = ({ submit, setSudmitTrigger }) => {
                             <ErrorMessage component="div" name="sku" />
                             {skuIsUnique && touched.sku && !errors.sku && <div className='green-msg'>SKU is unique</div>}
                             {!skuIsUnique && <div>SKU not unique</div>}
-                            {loadingCheckSku && <Spinner size='20px'/>}
-                            {errorCheckSku &&  <div>Error fetching data from the server</div>}
+                            {loadingCheckSku && <Spinner size='20px' />}
+                            {errorCheckSku && <div>Error fetching data from the server</div>}
                         </div>
                         <div className="input-wrapper">
                             <label htmlFor='name'>Name</label>
@@ -113,133 +139,91 @@ const AddForm = ({ submit, setSudmitTrigger }) => {
                                 name="productType"
                                 as="select"
                                 onChange={(e) => {
+                                    setFieldValue('weight', '');
+                                    setFieldValue('height', '');
+                                    setFieldValue('width', '');
+                                    setFieldValue('length', '');
+                                    setFieldValue('size', '');
                                     setTypeChanged(e.target.value)
                                     handleChange(e)
                                 }}
                             >
-                                <option value="book">Book</option>
+                                <option value="books">Book</option>
                                 <option value="dvd">DVD</option>
                                 <option value="furniture">Furniture</option>
                             </Field>
                         </div>
 
+
+                        {typeChanged === BOOK_TYPE && <BookAttrField />}
+                        {typeChanged === DVD_TYPE && <DvdAttrField />}
+                        {typeChanged === FURNITURE_TYPE && <FurnitureAttrFields />}
                     </Form>)
                 }}
-            </Formik>
-            {typeChanged === BOOK_TYPE && <BookAttrForm innerRef={attributeFormRef} setAttrFromBody={setAttrFromBody}/>}
-            {typeChanged === DVD_TYPE && <DvdAttrForm innerRef={attributeFormRef} setAttrFromBody={setAttrFromBody}/>}
-            {typeChanged === FURNITURE_TYPE && <FurnitureAttrForm innerRef={attributeFormRef} setAttrFromBody={setAttrFromBody}/>}
-
+            </Formik>}
         </div>
     );
 }
 
 export default AddForm;
 
-const DvdAttrForm = ({ innerRef }) => {
-    console.log('dvd component')
+const DvdAttrField = () => {
     return (
         <>
             <div className="attr-descr">Please, provide size</div>
-            <Formik
-                innerRef={innerRef}
-                initialValues={{
-                    'size': '',
-                }}
-                validationSchema={Yup.object({
-                    'size': Yup.number()
-                        .required('Required field'),
-                })}
-                onSubmit={values => console.log(JSON.stringify(values))}
-            >
-                <Form className="add-attr-form">
-                    <div className="input-wrapper">
-                        <label htmlFor="size">Size (MB)</label>
-                        <Field id="size"
-                            name="size"
-                            type="number" />
-                        <ErrorMessage component="div" name="size" />
-                    </div>
-                </Form>
-            </Formik>
+            <div className="input-wrapper">
+                <label htmlFor="size">Size (MB)</label>
+                <Field id="size"
+                    name="size"
+                    type="number" />
+                <ErrorMessage component="div" name="size" />
+            </div>
         </>
     )
 }
 
-const BookAttrForm = ({ innerRef, setAttrFromBody }) => {
+const BookAttrField = () => {
     return (
         <>
             <div className="attr-descr">Please, provide weight</div>
-            <Formik
-                innerRef={innerRef}
-                initialValues={{
-                    'weight': '',
-                }}
-                validationSchema={Yup.object({
-                    'weight': Yup.number()
-                        .required('Required field'),
-                })}
-                onSubmit={values => setAttrFromBody(JSON.stringify(values))}
-            >
-                <Form className="add-attr-form">
-                    <div className="input-wrapper">
-                        <label htmlFor="weight">Weight (KG)</label>
-                        <Field id="weight"
-                            name="weight"
-                            type="number" />
-                        <ErrorMessage component="div" name="weight" />
-                    </div>
-                </Form>
-            </Formik>
+
+            <div className="input-wrapper">
+                <label htmlFor="weight">Weight (KG)</label>
+                <Field id="weight"
+                    name="weight"
+                    type="number" />
+                <ErrorMessage component="div" name="weight" />
+            </div>
+
         </>
     )
 }
 
-const FurnitureAttrForm = ({ innerRef }) => {
+const FurnitureAttrFields = () => {
     return (
         <>
             <div className="attr-descr">Please, provide dimensions in HxWxL format</div>
-            <Formik
-                innerRef={innerRef}
-                initialValues={{
-                    'height': '',
-                    'width': '',
-                    'length': '',
-                }}
-                validationSchema={Yup.object({
-                    'height': Yup.number()
-                        .required('Required field'),
-                    'width': Yup.number()
-                        .required('Required field'),
-                    'length': Yup.number()
-                        .required('Required field'),
-                })}
-                onSubmit={values => console.log(JSON.stringify(values))}
-            >
-                <Form className="add-attr-form">
-                    <div className="input-wrapper">
-                        <label htmlFor="height">Height (CM)</label>
-                        <Field id="height"
-                            name="height"
-                            type="number" />
-                        <ErrorMessage component="div" name="height" />
-                    </div>
-                    <div className="input-wrapper">
-                        <label htmlFor="width">Width (CM)</label>
-                        <Field id="width"
-                            name="width"
-                            type="number" />
-                        <ErrorMessage component="div" name="width" />
-                    </div>
-                    <div className="input-wrapper">
-                        <label htmlFor="length">Length (CM)</label>
-                        <Field id="length"
-                            name="length"
-                            type="number" />
-                        <ErrorMessage component="div" name="length" />
-                    </div>
-                </Form>
-            </Formik>
+            <div className="input-wrapper">
+                <label htmlFor="height">Height (CM)</label>
+                <Field id="height"
+                    name="height"
+                    type="number" />
+                <ErrorMessage component="div" name="height" />
+            </div>
+            <div className="input-wrapper">
+                <label htmlFor="width">Width (CM)</label>
+                <Field id="width"
+                    name="width"
+                    type="number" />
+                <ErrorMessage component="div" name="width" />
+            </div>
+            <div className="input-wrapper">
+                <label htmlFor="length">Length (CM)</label>
+                <Field id="length"
+                    name="length"
+                    type="number" />
+                <ErrorMessage component="div" name="length" />
+            </div>
         </>
     )
 }

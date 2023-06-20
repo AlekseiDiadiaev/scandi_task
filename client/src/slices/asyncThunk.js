@@ -23,7 +23,7 @@ export const productsDeleted = createAsyncThunk(
     })
 
 export const productCreated= createAsyncThunk(
-    'PRODUCT_CREATED', (payload) => {
+    'PRODUCT_CREATED', async (payload) => {
         return createProduct(payload);
     })
 

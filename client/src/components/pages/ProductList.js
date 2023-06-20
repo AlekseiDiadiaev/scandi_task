@@ -8,13 +8,13 @@ import Spinner from '../spinner/Spinner'
 
 import { useDispatch, useSelector} from 'react-redux';
 import { useEffect } from 'react';
-import { useNavigate, } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { productsDataFetched, productsDeleted } from '../../slices/asyncThunk';
 
 
 
 const DVD_TYPE = 'dvd';
-const BOOK_TYPE = 'book';
+const BOOK_TYPE = 'books';
 const FURNITURE_TYPE = 'furniture';
 
 const ProductList = () => {
@@ -62,7 +62,7 @@ const ProductList = () => {
                 </Header>
                 <main className="products-list">
                     {cards}
-                    {loading && <Spinner/>}
+                    {loading && <Spinner size='50px'/>}
                     {error && <ErrorMessage>Error</ErrorMessage>}
                 </main>
                 <Footer/>

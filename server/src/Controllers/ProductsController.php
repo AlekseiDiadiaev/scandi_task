@@ -57,6 +57,7 @@ class ProductsController
         $res = $model->createOne();
         if ($res) {
             http_response_code(201);
+            print_r('{"status": true, "message": "Product created. SKU: '. $res .'"}');
         };
     }
 
@@ -66,7 +67,8 @@ class ProductsController
 
         $res = $model->deleteOneByID($sku);
         if ($res) {
-            http_response_code(204);
+            http_response_code(200);
+            print_r('{"status": true, "message": "Products deleted"}');
         };
     }
 

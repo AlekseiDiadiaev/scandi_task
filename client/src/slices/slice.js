@@ -39,9 +39,21 @@ export const Slice = createSlice({
                 state.error = true;
                 state.loading = false;
             })
+
             .addCase(productsDeleted.fulfilled, (state) => {
                 state.seletedToDelete = []
+                state.loading = false;
+                state.error = false;
             })
+            .addCase(productsDeleted.pending, (state) => {
+                state.loading = true;
+                state.error = false;
+            })
+            .addCase(productsDeleted.rejected, (state) => {
+                state.error = true;
+                state.loading = false;
+            })
+
             .addCase(isSkuUniqueFetched.fulfilled, (state, action) => {
                 if(action.payload['is_unique']){
                     state.skuIsUnique = true;
@@ -59,6 +71,7 @@ export const Slice = createSlice({
                 state.errorCheckSku = true;
                 state.loadingCheckSku = false;
             })
+
             .addCase(productCreated.fulfilled, state => {
                 state.loading = false;
                 state.error = false;
@@ -71,6 +84,7 @@ export const Slice = createSlice({
                 state.error = true;
                 state.loading = false;
             })
+
             .addDefaultCase(() => { })
     },
 })

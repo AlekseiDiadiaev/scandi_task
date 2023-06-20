@@ -8,7 +8,8 @@ class DvdProductsModel extends ProductsModel
 
     public function createOne()
     {   
-        ['size' => $size, 'sku' => $sku] = $_POST;
+        $requestPayload = file_get_contents('php://input');
+        ['size' => $size, 'sku' => $sku] = json_decode($requestPayload, true);
         $secondSql = "INSERT INTO dvd (sku, size) values ('{$sku}', '{$size}')";
 
         $transaction = parent::createOne();

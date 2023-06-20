@@ -1,12 +1,14 @@
 const API = 'http://scandiweb.ua/';
 
-const _request = async (url, method = 'GET', body, headers) => {
+const _request = async (url, method = 'GET', body = null, headers = {'Content-Type': 'application/json'}) => {
     try {
         const response = await fetch(url, { method, body, headers })
         if (!response.ok) {
             throw new Error(`Could not fetch ${url}, status${response.status}`)
         }
+
         const data = await response.json();
+
         return data;
     } catch (e) {
         throw e;
@@ -26,14 +28,16 @@ export const checkUniqueSku = (sku) => {
 }
 
 export const deleteProducts = (toDeleteArr) => {
-    return toDeleteArr.map((sku) =>
-        fetch(API + `products/${sku}`, {
-            method: 'DELETE',
-        })
-    );
+    return toDeleteArr.map((sku) =>{
+        return _request(API + `products/${sku}`, 'DELETE');
+    });
 }
 
-export const createProduct = (type) => {
-    return _request(API + `${type}`);
+
+
+export const createProduct = ({type, body}) => {
+    return _request(API + `products/${type}`, 'POST', body, {
+        'Content-Type': 'application/json'
+      });
 }
 

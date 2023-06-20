@@ -8,7 +8,9 @@ class BooksProductsModel extends ProductsModel
 
     public function createOne()
     {   
-        ['weight' => $weight, 'sku' => $sku] = $_POST;
+        $requestPayload = file_get_contents('php://input');
+        ['weight' => $weight, 'sku' => $sku] = json_decode($requestPayload, true);
+        
         $secondSql = "INSERT INTO books (sku, weight) values ('{$sku}', '{$weight}')";
 
         $transaction = parent::createOne();

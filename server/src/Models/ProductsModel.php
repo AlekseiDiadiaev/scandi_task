@@ -88,9 +88,11 @@ class ProductsModel
     protected function createOne()
     {
         return function ($secondSql) {
-            ['name' => $name, 'price' => $price, 'sku' => $sku] = $_POST;
+            $requestPayload = file_get_contents('php://input');
+            ['name' => $name, 'price' => $price, 'sku' => $sku] = json_decode($requestPayload, true);
+            
             $firstSql = "INSERT INTO products (sku, name, price, type) values ('{$sku}', '{$name}', {$price}, '{$this->typeName}')";
-          
+
             $this->conn->begin_transaction();
             try {
         
@@ -110,7 +112,7 @@ class ProductsModel
                 ErrorController::run($e->getMessage());
             }
 
-            return true;
+            return $sku;
         };
     }
 

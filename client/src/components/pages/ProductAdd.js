@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 
 
 // const DVD_TYPE = 'dvd';
-// const BOOK_TYPE = 'book';
+// const BOOK_TYPE = 'books';
 // const FURNITURE_TYPE = 'furniture';
 
 const ProductAdd = () => {
