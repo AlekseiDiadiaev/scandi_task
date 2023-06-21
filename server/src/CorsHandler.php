@@ -4,6 +4,9 @@ namespace ScandiwebAPI;
 
 class CorsHandler
 {
+    /**
+     * Handles preflight requests by setting the appropriate CORS headers
+     */
     public static function handlePreflightRequest()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -16,6 +19,9 @@ class CorsHandler
         }
     }
 
+    /**
+     * Sets the CORS headers for regular requests
+     */
     public static function setCorsHeaders()
     {
         header("Access-Control-Allow-Origin: *");

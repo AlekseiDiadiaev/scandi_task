@@ -1,6 +1,6 @@
 import './spinner.scss'
 
-const Spinner = ({ size = "36px" , className = ''}) => {
+const Spinner = ({ size = "36px", className = '' }) => {
     return (
         <div className={"spinner " + className}>
             <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

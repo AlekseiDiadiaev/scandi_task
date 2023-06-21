@@ -22,7 +22,7 @@ export const productsDeleted = createAsyncThunk(
         dispatch(productsDataFetched());
     })
 
-export const productCreated= createAsyncThunk(
+export const productCreated = createAsyncThunk(
     'PRODUCT_CREATED', async (payload) => {
         return createProduct(payload);
     })

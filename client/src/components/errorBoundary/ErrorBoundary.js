@@ -14,7 +14,6 @@ class ErrorBoundary extends Component {
         if (this.state.error) {
             return <ErrorMessage>Что пошло не так. Обновите страницу.</ErrorMessage>;
         }
-
         return this.props.children;
     }
 }

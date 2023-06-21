@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { productsDataFetched, productsDeleted, oneProductFetched, isSkuUniqueFetched, productCreated } from './asyncThunk'
+import { productsDataFetched, productsDeleted, isSkuUniqueFetched, productCreated } from './asyncThunk'
 
 export const Slice = createSlice({
     name: 'slice',
@@ -55,7 +55,7 @@ export const Slice = createSlice({
             })
 
             .addCase(isSkuUniqueFetched.fulfilled, (state, action) => {
-                if(action.payload['is_unique']){
+                if (action.payload['is_unique']) {
                     state.skuIsUnique = true;
                 } else {
                     state.skuIsUnique = false;

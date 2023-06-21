@@ -1,6 +1,8 @@
 import './addForm.scss'
 
 import Spinner from '../spinner/Spinner';
+import CustomErrorMessage from '../errorBoundary/ErrorMessage'
+
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useState, useRef, useEffect } from 'react'
@@ -8,7 +10,6 @@ import { isSkuUniqueFetched, productCreated } from '../../slices/asyncThunk'
 import { useDispatch, useSelector } from 'react-redux';
 import { skuIsUniqueSet } from '../../slices/slice'
 import { useNavigate } from 'react-router-dom';
-import CustomErrorMessage from '../errorBoundary/ErrorMessage'
 
 const DVD_TYPE = 'dvd';
 const BOOK_TYPE = 'books';
@@ -19,20 +20,19 @@ const AddForm = ({ submit, setSudmitTrigger }) => {
     const [typeChanged, setTypeChanged] = useState(BOOK_TYPE);
     const [mainFromBody, setMainFromBody] = useState(null);
     const mainFormRef = useRef(null);
-    const attributeFormRef = useRef(null);
-    const dispatch = useDispatch()
     const skuIsUnique = useSelector(state => state.skuIsUnique)
     const loadingCheckSku = useSelector(state => state.loadingCheckSku)
     const errorCheckSku = useSelector(state => state.errorCheckSku)
     const loading = useSelector(state => state.loading)
     const error = useSelector(state => state.error)
+    const dispatch = useDispatch()
     const navigate = useNavigate();
 
     useEffect(() => {
         if (!submit) return;
         setSudmitTrigger(false)
         mainFormRef.current.submitForm();
-    }, [submit])
+    }, [submit, setSudmitTrigger])
 
     useEffect(() => {
         if (!mainFromBody) return;
@@ -47,14 +47,14 @@ const AddForm = ({ submit, setSudmitTrigger }) => {
                     navigate('/')
                 }
             });
-    }, [mainFromBody])
+    }, [mainFromBody, dispatch, navigate, typeChanged])
 
     const handleBlurSKU = (e) => {
         if (e.target.value === '') return;
         dispatch(isSkuUniqueFetched(e.target.value))
     }
 
-    const handleFocusSKU = (e, setTouched) => {
+    const handleFocusSKU = (setTouched) => {
         dispatch(skuIsUniqueSet(true))
         setTouched({ 'sku': false })
     }
@@ -106,7 +106,7 @@ const AddForm = ({ submit, setSudmitTrigger }) => {
                                 name="sku"
                                 type="text"
                                 className={`${skuIsUnique && touched.sku && !errors.sku ? 'green' : ''} ${!skuIsUnique ? 'red' : ''}`}
-                                onFocus={e => handleFocusSKU(e, setTouched)}
+                                onFocus={() => handleFocusSKU(setTouched)}
                                 onBlur={e => {
                                     handleBlurSKU(e)
                                     handleBlur(e)
@@ -153,8 +153,6 @@ const AddForm = ({ submit, setSudmitTrigger }) => {
                                 <option value="furniture">Furniture</option>
                             </Field>
                         </div>
-
-
                         {typeChanged === BOOK_TYPE && <BookAttrField />}
                         {typeChanged === DVD_TYPE && <DvdAttrField />}
                         {typeChanged === FURNITURE_TYPE && <FurnitureAttrFields />}
@@ -194,7 +192,6 @@ const BookAttrField = () => {
                     type="number" />
                 <ErrorMessage component="div" name="weight" />
             </div>
-
         </>
     )
 }

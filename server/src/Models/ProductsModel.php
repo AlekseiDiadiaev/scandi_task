@@ -51,7 +51,7 @@ class ProductsModel
         return $filteredResult;
     }
 
-     /**
+    /**
      * Reads a single record from the products table based on SKU
      * @param string $sku SKU value
      * @return array|false Array with data of the record or false if not found
@@ -66,15 +66,16 @@ class ProductsModel
             LEFT JOIN furniture ON products.sku = furniture.sku
             LEFT JOIN books ON products.sku = books.sku
             LEFT JOIN dvd ON products.sku = dvd.sku
-            WHERE products.sku = '{$sku}'";
-        $response = mysqli_query($this->conn, $sql);
+            WHERE products.sku = ?";
+
+        $response = Database::executeStmt($this->conn, $sql, 's', [$sku])->get_result();
 
         if (!$response) {
             ErrorController::run(500, mysqli_error($this->conn));
         }
 
-        if (mysqli_num_rows($response)) {
-            $result = mysqli_fetch_assoc($response);
+        if ($response->num_rows) {
+            $result = $response->fetch_assoc();
             return array_filter($result, function ($value) {
                 return !is_null($value);
             });
@@ -95,15 +96,10 @@ class ProductsModel
         $this->conn->begin_transaction();
 
         try {
-            $response1 = $this->conn->query("DELETE FROM products WHERE sku = '{$sku}'");
-            if (!$response1) {
-                throw new \Exception(mysqli_error($this->conn));
-            };
-
-            $response2 = $this->conn->query("DELETE FROM $productType WHERE sku = '{$sku}'");
-            if (!$response2) {
-                throw new \Exception(mysqli_error($this->conn));
-            };
+            $sql_1 = "DELETE FROM products WHERE sku = ?";
+            Database::executeStmt($this->conn, $sql_1, 's', [$sku]);
+            $sql_2 = "DELETE FROM $productType WHERE sku = ?";
+            Database::executeStmt($this->conn, $sql_2, 's', [$sku]);
 
             $this->conn->commit();
         } catch (\Exception $e) {
@@ -113,33 +109,25 @@ class ProductsModel
         }
         return $sku;
     }
-    
-     /**
+
+    /**
      * Creates a new record in the products table
      * @param string $secondSql The second SQL query
      * @return Closure Anonymous function to handle the creation of a record
      */
     protected function createOne()
     {
-        return function ($secondSql) {
+        return function ($secondSql, $secondsTypes, $secondArguments) {
+
             $requestPayload = file_get_contents('php://input');
             ['name' => $name, 'price' => $price, 'sku' => $sku] = json_decode($requestPayload, true);
-
-            $firstSql = "INSERT INTO products (sku, name, price, type) values ('{$sku}', '{$name}', {$price}, '{$this->typeName}')";
+            $firstSql = "INSERT INTO products (sku, name, price, type) values ( ? , ? , ? , ?)";
 
             $this->conn->begin_transaction();
+
             try {
-
-                $response1 = $this->conn->query($firstSql);
-                if (!$response1) {
-                    throw new \Exception(mysqli_error($this->conn));
-                };
-
-                $response2 = $this->conn->query($secondSql);
-                if (!$response2) {
-                    throw new \Exception(mysqli_error($this->conn));
-                };
-
+                Database::executeStmt($this->conn, $firstSql, 'ssds', [$sku, $name, $price, $this->typeName]);
+                Database::executeStmt($this->conn, $secondSql, $secondsTypes, $secondArguments);
                 $this->conn->commit();
             } catch (\Exception $e) {
                 $this->conn->rollback();
@@ -150,11 +138,16 @@ class ProductsModel
         };
     }
 
+    /**
+     * Retrieves the type of a product based on SKU
+     * @param string $sku SKU value
+     * @return string Product type
+     */
     private function getType($sku)
     {
-        $selectSql = "SELECT type FROM products WHERE sku = '{$sku}'";
+        $selectSql = "SELECT type FROM products WHERE sku = ?";
 
-        $result = mysqli_query($this->conn, $selectSql);
+        $result =  Database::executeStmt($this->conn, $selectSql, 's', [$sku])->get_result();
 
         if (!$result) {
             ErrorController::run(500, mysqli_error($this->conn));
@@ -171,3 +164,4 @@ class ProductsModel
         return  $productType;
     }
 }
+ 

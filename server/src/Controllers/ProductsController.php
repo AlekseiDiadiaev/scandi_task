@@ -10,6 +10,9 @@ class ProductsController
     protected $MODELS_NAMESPACE = 'ScandiwebAPI\Models\\';
     protected $typeName;
 
+    /**
+     * Retrieves all records from the products table
+     */
     final public function readAll()
     {
         $model = new ProductsModel;
@@ -18,6 +21,10 @@ class ProductsController
         die();
     }
 
+    /**
+     * Checks if a given SKU is unique in the products table
+     * @param string $sku SKU value
+     */
     final public function readOne($sku)
     {
         $model = new ProductsModel;
@@ -30,6 +37,10 @@ class ProductsController
         die();
     }
 
+    /**
+     * Checks if a given SKU is unique in the products table
+     * @param string $sku SKU value
+     */
     final public function checkUnique($sku)
     {
         $model = new ProductsModel;
@@ -42,6 +53,9 @@ class ProductsController
         die();
     }
 
+    /**
+     * Creates a new product record
+     */
     public function createOne()
     {
         if (!$this->typeName) {
@@ -57,6 +71,10 @@ class ProductsController
         die();
     }
 
+    /**
+     * Deletes a product record based on SKU
+     * @param string $sku SKU value
+     */
     final public function deleteOneByID($sku)
     {
         $model = new ProductsModel;
@@ -69,6 +87,10 @@ class ProductsController
         die();
     }
 
+    /**
+     * Returns an instance of the appropriate model based on the typeName property
+     * @return \ProductsModel Instance of the corresponding model
+     */
     private function getModel()
     {
         $modelName = $this->MODELS_NAMESPACE . ucfirst($this->typeName) . 'ProductsModel';

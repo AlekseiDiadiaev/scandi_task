@@ -8,10 +8,13 @@ class Router
 {
     private static $CONTROLLER_NAMESPACE = 'ScandiwebAPI\Controllers\\';
 
+    /**
+     * Runs the router to handle incoming requests
+     */
     public static function run()
     {
         if (empty($_GET)) {
-            self::routeError();
+            ErrorController::run();
         }
         $method =  $_SERVER['REQUEST_METHOD'];
         $uri = trim($_GET['q'], '/');
@@ -20,14 +23,18 @@ class Router
             case 'GET':
                 self::routeGETMethod($uri);
             case 'POST':
-                !self::routePOSTMethod($uri);
+                self::routePOSTMethod($uri);
             case 'DELETE':
-                !self::routeDELETEMethod($uri);
+                self::routeDELETEMethod($uri);
             default:
                 ErrorController::run();
         }
     }
 
+    /**
+     * Routes the GET method request based on the URI
+     * @param string $uri Request URI
+     */
     private static function routeGETMethod($uri)
     {
         $segments = explode('/', $uri);
@@ -52,10 +59,14 @@ class Router
         }
     }
 
+    /**
+     * Routes the POST method request based on the URI
+     * @param string $uri Request URI
+     */
     private static function routePOSTMethod($uri)
     {
         $segments = explode('/', $uri);
-        if (count($segments) === 1) return;
+        if (count($segments) < 2) return;
 
         $nameController = self::$CONTROLLER_NAMESPACE . ucfirst($segments[1]) . ucfirst($segments[0]) .  'Controller';
         if (!class_exists($nameController)) {
@@ -69,6 +80,10 @@ class Router
         }
     }
 
+    /**
+     * Routes the DELETE method request based on the URI
+     * @param string $uri Request URI
+     */
     private static function routeDELETEMethod($uri)
     {
         $segments = explode('/', $uri);
@@ -84,10 +99,5 @@ class Router
         if (count($segments) === 2) {
             $controller->deleteOneByID($segments[1]);
         }
-    }
-
-    private static function routeError()
-    {
-        ErrorController::run();
     }
 }

@@ -6,12 +6,10 @@ import Button from '../button/Button'
 import ErrorMessage from '../errorBoundary/ErrorMessage'
 import Spinner from '../spinner/Spinner'
 
-import { useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { productsDataFetched, productsDeleted } from '../../slices/asyncThunk';
-
-
 
 const DVD_TYPE = 'dvd';
 const BOOK_TYPE = 'books';
@@ -27,17 +25,17 @@ const ProductList = () => {
 
     useEffect(() => {
         dispatch(productsDataFetched())
-    },[dispatch])
+    }, [dispatch])
 
     const handleDelete = () => {
-        if(seletedToDelete.lenght < 1) return;
+        if (seletedToDelete.lenght < 1) return;
         dispatch(productsDeleted(seletedToDelete))
     }
 
     const cards = !loading && !error && productsData.map(item => {
         const { name, sku, price, type } = item;
         let attribute = '';
-        switch (type){
+        switch (type) {
             case DVD_TYPE:
                 attribute = `Size: ${item.size} Mb`
                 break;
@@ -46,12 +44,12 @@ const ProductList = () => {
                 break;
             case FURNITURE_TYPE:
                 attribute = `Dimension: ${item.height}x${item.width}x${item.length}`
-                break;  
+                break;
             default:
-                break;      
+                break;
         }
-        return <Card key={sku} name={name} sku={sku} price={price} attribute={attribute}/>;
-    }) 
+        return <Card key={sku} name={name} sku={sku} price={price} attribute={attribute} />;
+    })
 
     return (
         <>
@@ -62,10 +60,10 @@ const ProductList = () => {
                 </Header>
                 <main className="products-list">
                     {cards}
-                    {loading && <Spinner size='50px'/>}
+                    {loading && <Spinner size='50px' />}
                     {error && <ErrorMessage>Error</ErrorMessage>}
                 </main>
-                <Footer/>
+                <Footer />
             </div>
         </>
     );

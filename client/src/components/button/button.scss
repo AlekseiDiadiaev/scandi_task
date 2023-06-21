@@ -4,16 +4,18 @@
     padding: 10px;
     font-size: 15px;
     font-weight: 700;
-    border: 1px solid; 
+    border: 1px solid;
     box-shadow: 4px 4px 0 #000;
     transition: all 0.3s;
+
     @media(hover: hover) {
-        &:hover{
+        &:hover {
             transform: translate(2px, 2px);
             box-shadow: 1px 1px 0 #000;
         }
     }
-    &:active{
+
+    &:active {
         transform: translate(4px, 4px);
         box-shadow: none;
     }
