@@ -3,6 +3,7 @@
 namespace ScandiwebAPI\Controllers;
 
 use ScandiwebAPI\Models\ProductsModel;
+use ScandiwebAPI\Controllers\ErrorController;
 
 class ProductsController
 {
@@ -12,39 +13,33 @@ class ProductsController
     final public function readAll()
     {
         $model = new ProductsModel;
-        $res = $model->readAll();
-        $filteredRes = array_map(function ($item) {
-            return array_filter($item, function ($value) {
-                return !is_null($value);
-            });
-        }, $res);
-        print_r(json_encode($filteredRes));
+        $result = $model->readAll();
+        print_r(json_encode($result));
+        die();
     }
 
     final public function readOne($sku)
     {
         $model = new ProductsModel;
-        $res = $model->readOne($sku);
-        if (!$res) {
-            print_r('[]');;
+        $result = $model->readOne($sku);
+        if (!$result) {
+            ErrorController::run(404);
         } else {
-            $filteredRes = array_filter($res, function ($value) {
-                return !is_null($value);
-            });
-
-            print_r(json_encode($filteredRes));
+            print_r(json_encode($result));
         }
+        die();
     }
 
     final public function checkUnique($sku)
     {
         $model = new ProductsModel;
-        $res = $model->readOne($sku);
-        if (!$res) {
+        $result = $model->readOne($sku);
+        if (!$result) {
             print_r('{"is_unique": true}');
         } else {
             print_r('{"is_unique": false}');
         }
+        die();
     }
 
     public function createOne()
@@ -54,27 +49,29 @@ class ProductsController
         }
         $model = $this->getModel();
 
-        $res = $model->createOne();
-        if ($res) {
+        $result = $model->createOne();
+        if ($result) {
             http_response_code(201);
-            print_r('{"status": true, "message": "Product created. SKU: '. $res .'"}');
+            print_r('{"status": true, "message": "Product created. SKU: ' . $result . '"}');
         };
+        die();
     }
 
     final public function deleteOneByID($sku)
     {
         $model = new ProductsModel;
 
-        $res = $model->deleteOneByID($sku);
-        if ($res) {
+        $result = $model->deleteOneByID($sku);
+        if ($result) {
             http_response_code(200);
-            print_r('{"status": true, "message": "Products deleted"}');
+            print_r('{"status": true, "message": "Products ' . $result . ' deleted"}');
         };
+        die();
     }
 
     private function getModel()
     {
-        $nameModel = $this->MODELS_NAMESPACE . ucfirst($this->typeName) . 'ProductsModel';
-        return new $nameModel;
+        $modelName = $this->MODELS_NAMESPACE . ucfirst($this->typeName) . 'ProductsModel';
+        return new $modelName;
     }
 }

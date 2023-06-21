@@ -18,20 +18,13 @@ class Router
 
         switch ($method) {
             case 'GET':
-                if (!self::routeGETMethod($uri)) {
-                    self::routeError();
-                }
-                break;
+                self::routeGETMethod($uri);
             case 'POST':
-                if (!self::routePOSTMethod($uri)) {
-                    self::routeError();
-                }
-                break;
+                !self::routePOSTMethod($uri);
             case 'DELETE':
-                if (!self::routeDELETEMethod($uri)) {
-                    self::routeError();
-                }
-                break;
+                !self::routeDELETEMethod($uri);
+            default:
+                ErrorController::run();
         }
     }
 
@@ -41,7 +34,7 @@ class Router
 
         $nameController = self::$CONTROLLER_NAMESPACE . ucfirst($segments[0]) .  'Controller';
         if (!class_exists($nameController)) {
-            return false;
+            return;
         }
 
         $controller = new $nameController;
@@ -57,34 +50,33 @@ class Router
         if (count($segments) === 3 && $segments[1] === 'isunique') {
             $controller->checkUnique($segments[2]);
         }
-
-        return true;
     }
 
     private static function routePOSTMethod($uri)
     {
         $segments = explode('/', $uri);
-        if (count($segments) === 1) return false;
+        if (count($segments) === 1) return;
 
         $nameController = self::$CONTROLLER_NAMESPACE . ucfirst($segments[1]) . ucfirst($segments[0]) .  'Controller';
         if (!class_exists($nameController)) {
-            return false;
+            return;
         }
 
         $controller = new $nameController;
 
-        $controller->createOne();
-        return true;
+        if (count($segments) === 2) {
+            $controller->createOne();
+        }
     }
 
     private static function routeDELETEMethod($uri)
     {
         $segments = explode('/', $uri);
-        if (count($segments) === 1) return false;
+        if (count($segments) === 1) return;
 
         $nameController = self::$CONTROLLER_NAMESPACE . ucfirst($segments[0]) .  'Controller';
         if (!class_exists($nameController)) {
-            return false;
+            return;
         }
 
         $controller = new $nameController;
@@ -92,8 +84,6 @@ class Router
         if (count($segments) === 2) {
             $controller->deleteOneByID($segments[1]);
         }
-
-        return true;
     }
 
     private static function routeError()

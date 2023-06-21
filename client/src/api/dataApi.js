@@ -1,4 +1,4 @@
-const API = 'http://scandiweb.ua/';
+const API = 'http://176.114.12.174:10001/';
 
 const _request = async (url, method = 'GET', body = null, headers = {'Content-Type': 'application/json'}) => {
     try {

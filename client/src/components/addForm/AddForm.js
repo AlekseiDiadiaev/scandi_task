@@ -99,7 +99,7 @@ const AddForm = ({ submit, setSudmitTrigger }) => {
                 onSubmit={values => setMainFromBody(values)}
             >
                 {({ touched, errors, setTouched, handleBlur, handleChange, setFieldValue }) => {
-                    return (<Form className="product-form">
+                    return (<Form className="product-form" id="product_form">
                         <div className="input-wrapper">
                             <label htmlFor="sku">SKU</label>
                             <Field id="sku"

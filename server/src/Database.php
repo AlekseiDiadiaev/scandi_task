@@ -2,6 +2,8 @@
 
 namespace ScandiwebAPI;
 
+use ScandiwebAPI\Controllers\ErrorController;
+
 require_once __DIR__.'/config/configDb.php';
 
 class Database
@@ -11,7 +13,7 @@ class Database
     {
         $conn = mysqli_connect(HOST, USERNAME, PASSWORD, DB_NAME);
         if (!$conn) {
-            die("Connection failed: " . mysqli_connect_error());
+            ErrorController::run(500, mysqli_connect_error());
         }
       
         return $conn;

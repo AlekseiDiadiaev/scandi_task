@@ -57,7 +57,7 @@ const ProductList = () => {
         <>
             <div className="container">
                 <Header title="Product List">
-                    <Button onClick={() => navigate('/add')}>ADD</Button>
+                    <Button onClick={() => navigate('/add-product')}>ADD</Button>
                     <Button onClick={() => handleDelete()}>MASS DELETE</Button>
                 </Header>
                 <main className="products-list">

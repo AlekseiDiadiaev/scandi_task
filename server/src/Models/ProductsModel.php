@@ -15,6 +15,10 @@ class ProductsModel
         $this->conn = Database::getConnection();
     }
 
+    /**
+     * Reads all records from the products table
+     * @return array Array with data of the records
+     */
     public function readAll()
     {
         $sql = 'SELECT products.id, products.sku,
@@ -28,19 +32,30 @@ class ProductsModel
         $response = mysqli_query($this->conn, $sql);
 
         if (!$response) {
-            ErrorController::run();
+            ErrorController::run(500, mysqli_error($this->conn));
         }
-        $res = [];
 
+        $result = [];
         if (mysqli_num_rows($response) > 0) {
             while ($row = mysqli_fetch_assoc($response)) {
-                $res[] = $row;
+                $result[] = $row;
             }
         }
 
-        return $res;
+        $filteredResult = array_map(function ($item) {
+            return array_filter($item, function ($value) {
+                return !is_null($value);
+            });
+        }, $result);
+
+        return $filteredResult;
     }
 
+     /**
+     * Reads a single record from the products table based on SKU
+     * @param string $sku SKU value
+     * @return array|false Array with data of the record or false if not found
+     */
     public function readOne($sku)
     {
         $sql = "SELECT products.id, products.sku,
@@ -55,16 +70,24 @@ class ProductsModel
         $response = mysqli_query($this->conn, $sql);
 
         if (!$response) {
-            ErrorController::run();
+            ErrorController::run(500, mysqli_error($this->conn));
         }
 
         if (mysqli_num_rows($response)) {
-            return mysqli_fetch_assoc($response);
+            $result = mysqli_fetch_assoc($response);
+            return array_filter($result, function ($value) {
+                return !is_null($value);
+            });
         }
 
         return false;
     }
 
+    /**
+     * Deletes a single record from the products table based on SKU
+     * @param string $sku SKU value
+     * @return string SKU value of the deleted record
+     */
     public function deleteOneByID($sku)
     {
         $productType = $this->getType($sku);
@@ -72,44 +95,55 @@ class ProductsModel
         $this->conn->begin_transaction();
 
         try {
-            $this->conn->query("DELETE FROM products WHERE sku = '{$sku}'");
+            $response1 = $this->conn->query("DELETE FROM products WHERE sku = '{$sku}'");
+            if (!$response1) {
+                throw new \Exception(mysqli_error($this->conn));
+            };
 
-            $this->conn->query("DELETE FROM $productType WHERE sku = '{$sku}'");
+            $response2 = $this->conn->query("DELETE FROM $productType WHERE sku = '{$sku}'");
+            if (!$response2) {
+                throw new \Exception(mysqli_error($this->conn));
+            };
 
             $this->conn->commit();
         } catch (\Exception $e) {
 
             $this->conn->rollback();
-            ErrorController::run();
+            ErrorController::run(404, $e->getMessage());
         }
-        return true;
+        return $sku;
     }
-
+    
+     /**
+     * Creates a new record in the products table
+     * @param string $secondSql The second SQL query
+     * @return Closure Anonymous function to handle the creation of a record
+     */
     protected function createOne()
     {
         return function ($secondSql) {
             $requestPayload = file_get_contents('php://input');
             ['name' => $name, 'price' => $price, 'sku' => $sku] = json_decode($requestPayload, true);
-            
+
             $firstSql = "INSERT INTO products (sku, name, price, type) values ('{$sku}', '{$name}', {$price}, '{$this->typeName}')";
 
             $this->conn->begin_transaction();
             try {
-        
+
                 $response1 = $this->conn->query($firstSql);
-                if (!$response1) { 
-                    throw new \Exception(mysqli_error($this->conn)); 
+                if (!$response1) {
+                    throw new \Exception(mysqli_error($this->conn));
                 };
 
                 $response2 = $this->conn->query($secondSql);
-                if (!$response2) { 
-                    throw new \Exception(mysqli_error($this->conn)); 
+                if (!$response2) {
+                    throw new \Exception(mysqli_error($this->conn));
                 };
 
                 $this->conn->commit();
             } catch (\Exception $e) {
                 $this->conn->rollback();
-                ErrorController::run($e->getMessage());
+                ErrorController::run(404, $e->getMessage());
             }
 
             return $sku;
@@ -123,7 +157,7 @@ class ProductsModel
         $result = mysqli_query($this->conn, $selectSql);
 
         if (!$result) {
-            ErrorController::run();
+            ErrorController::run(500, mysqli_error($this->conn));
         }
 
         $productType = '';

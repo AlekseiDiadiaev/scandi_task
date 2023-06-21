@@ -2,10 +2,9 @@
 require './vendor/autoload.php';
 
 use ScandiwebAPI\Router;
+use ScandiwebAPI\CorsHandler;
 
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-type: json/application');
+CorsHandler::handlePreflightRequest();
+CorsHandler::setCorsHeaders();
 
 Router::run();
