@@ -1,4 +1,4 @@
-const API = 'http://scandiweb.ua/';
+const API = 'http://scandiwebapi.doublethinker.pw/';
 
 const _request = async (url, method = 'GET', body = null, headers = { 'Content-Type': 'application/json' }) => {
     try {
